@@ -12,66 +12,47 @@ import SwiftUI
 
 
 struct ContentView: View {
-    @State private var user = User(firstName: "Taylor", lastName: "Swift")
-    @State private var showingSheet = false
-    @State private var numbers = [Int]()
-    @State private var currentNumber = 1
+@StateObject var expenses = Expenses()
+    @State private var showingAddExpense = false
     
-   // @State private var tapCount = UserDefaults.standard.integer(forKey: "Tap")
-    @AppStorage("tapCount") private var tapCount = 0;
-    
-    func removeRows(at offsets: IndexSet){
-        numbers.remove(atOffsets: offsets)
+    func removeItems(at offsets: IndexSet) {
+        expenses.items.remove(atOffsets: offsets)
     }
     
     var body: some View {
         
-        
         NavigationView{
-            VStack{
-                Button("Tap count: \(tapCount)") {
-                      tapCount += 1
-                 //   możemy wyłączyć bo jest w appstorage
-                  //  UserDefaults.standard.set(self.tapCount, forKey: "Tap")
-                  }
-                
-                Button("Save user"){
-                    let encoder = JSONEncoder()
-                    if let data = try? encoder.encode(user){
-                        UserDefaults.standard.set(data,forKey: "UserData")
+            List{
+                ForEach(expenses.items){ item in
+                    HStack{
+                        VStack(alignment: .leading){
+                            Text(item.name)
+                                .font(.headline)
+                            Text(item.type)
+                        }
+                        Spacer()
+                        Text(item.amount,format: .localCurrency)
+                            .style(for: item)
                     }
                 }
-                List{
-                    ForEach(numbers, id: \.self){
-                        Text("Row \($0)")
-                    }
-                    .onDelete(perform: removeRows)
-                    
-                }
-                Button("Add number") {
-                    numbers.append(currentNumber)
-                    currentNumber += 1
-                }
-            }.toolbar {
-                EditButton()
+                .onDelete(perform: removeItems)
             }
             
-            
-            
-            //        Button("Show Sheet") {
-            //            showingSheet.toggle()
-            //          }
-            //        .sheet(isPresented: $showingSheet) {
-            //            SecondView(name: "Dupek")
-            //        }
-            
-            //        VStack {
-            //            Text("Your name is \(user.firstName) \(user.lastName).")
-            //
-            //            TextField("First name", text: $user.firstName)
-            //            TextField("Last name", text: $user.lastName)
-            //        }
+            .toolbar {
+                Button {
+                    showingAddExpense = true
+//                    let expense = ExpenseItem(name: "Test", type: "Personal", amount: 5)
+//                    expenses.items.append(expense)
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
         }
+        .navigationTitle("Wydatki")
+        .sheet(isPresented: $showingAddExpense) {
+            AddView(expenses: expenses)
+        }
+
     }
 }
 
